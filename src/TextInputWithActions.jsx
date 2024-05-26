@@ -45,7 +45,7 @@ class TextInputWithActions extends React.Component {
     };
 
     componentDidMount() {
-        this.recalcActionsWidth();
+        this.recalcActionsWidth(); //желательно использовать useCallback для предотвращения повторного рендеринга 
         this.setFocus();
         this.setState({
             value: localStorage.getItem(this.props.id)
@@ -66,7 +66,6 @@ class TextInputWithActions extends React.Component {
     setValue = (value) => {
         this.setState({ value });
         this.onChangeDebounce(value);
-        console.log('🚀 ~ TextInputWithActions ~ value:', value);
         localStorage.setItem(this.props.id, value);
     };
 
@@ -74,11 +73,6 @@ class TextInputWithActions extends React.Component {
         if (this.props.readOnly) {
             return;
         }
-    };
-
-    checkPrepareNumber = (value) => {
-        if (this.props.prepareNumber) this.props.prepareNumber(value);
-        else return value;
     };
 
     onBlur = (e) => {
@@ -128,14 +122,6 @@ class TextInputWithActions extends React.Component {
         clearTimeout(this.changeTimer);
     };
 
-    sameExecCommandInsertText = () => {
-        var start = this.selectionStart;
-        var end = this.selectionEnd;
-        this.value =
-            this.value.substring(0, start) + '\t' + this.value.substring(end);
-        this.selectionStart = this.selectionEnd = start + 1;
-    };
-
     onKeyDown = (e) => {
         this.props.onKeyDown && this.props.onKeyDown(e);
 
@@ -143,11 +129,9 @@ class TextInputWithActions extends React.Component {
             return;
         }
 
-        // if (e.key === 'Tab' && !e.shiftKey) this.sameExecCommandInsertText(e); //?
         if (e.key === 'Tab' && !e.shiftKey) {
             e.preventDefault();
             document.execCommand('insertText', false, '\t');
-            // this.sameExecCommandInsertText();
             return false;
         }
     };
@@ -241,7 +225,6 @@ this.state.value || this.state.value === 0 ? this.state.value : '';
                         </span>
                     );
                 } else {
-                    console.log(value);
                     return (
                         <InputNumber
                             ref={this.input}

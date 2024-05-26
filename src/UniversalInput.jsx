@@ -53,7 +53,7 @@ class UniversalInput extends React.Component {
         return (
             <TextInputWithActions
                 {...props}
-                // onEndEditing={this.onEndEditing}
+                onEndEditing={this.onEndEditing} // наличие неиспользуемого метода создает предупреждение со стороны DevTools браузера
                 onChange={this.onChange}
                 actions={newActions}
             />
@@ -62,12 +62,12 @@ class UniversalInput extends React.Component {
 }
 
 UniversalInput.propTypes = {
-        t: PropTypes.any,
-        id: PropTypes.string,
-      onEndEditing: PropTypes.func,
-      actions: PropTypes.array,
-      updateProcess: PropTypes.func,
-      onChange: PropTypes.func,
-      eventable: PropTypes.any, // bool?
+    t: PropTypes.any,
+    id: PropTypes.string,
+    onEndEditing: PropTypes.func,
+    actions: PropTypes.array,
+    updateProcess: PropTypes.func,
+    onChange: PropTypes.func,
+    eventable: PropTypes.any, // bool?
   };
 export default UniversalInput
