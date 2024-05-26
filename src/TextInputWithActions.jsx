@@ -26,7 +26,6 @@ class TextInputWithActions extends React.Component {
     }
 
     recalcActionsWidth() {
-        // откуда берется  this.actionsNode ?
         if (!this.actionsNode) {
             return;
         }
@@ -50,8 +49,8 @@ class TextInputWithActions extends React.Component {
         this.setFocus();
         this.setState({
             value: localStorage.getItem(this.props.id)
-            ? localStorage.getItem(this.props.id)
-            : this.props.value,
+                ? localStorage.getItem(this.props.id)
+                : this.props.value,
         });
     }
 
@@ -61,35 +60,27 @@ class TextInputWithActions extends React.Component {
 
     onChange = (e) => {
         const value = e.target.value;
-
-        // зачем нужна первая установка, если есть последняя
-        this.setState({ value }); //????
-
-        //onChangeDebounce-таймер с родительским onchange
-        this.onChangeDebounce(value);
-
         this.setValue(value);
-        localStorage.setItem(this.props.id, value);
     };
 
     setValue = (value) => {
         this.setState({ value });
         this.onChangeDebounce(value);
+        console.log('🚀 ~ TextInputWithActions ~ value:', value);
         localStorage.setItem(this.props.id, value);
     };
-  
+
     checkReadOnly = () => {
         if (this.props.readOnly) {
             return;
         }
-    }
+    };
 
     checkPrepareNumber = (value) => {
-    if (this.props.prepareNumber) this.props.prepareNumber(value);
-    else return value
-    }
-    
-    //ф-я размытия поля?
+        if (this.props.prepareNumber) this.props.prepareNumber(value);
+        else return value;
+    };
+
     onBlur = (e) => {
         this.checkReadOnly();
         const value = e.target.value;
@@ -102,11 +93,10 @@ class TextInputWithActions extends React.Component {
     };
 
     onChangeNumber = (value) => {
-        console.log(value);
-        value = this.checkPrepareNumber(value);
-        this.setState({ value });
-        this.onChangeDebounce(value);
-        localStorage.setItem(this.props.id, value);
+        value = this.props.prepareNumber
+            ? this.props.prepareNumber(value)
+            : value;
+        this.setValue(value);
     };
 
     onBlurNumber = (e) => {
@@ -118,12 +108,12 @@ class TextInputWithActions extends React.Component {
         }
     };
 
-    setBlur = value => {
+    setBlur = (value) => {
         this.setState({ value });
         this.onChangeDebounceCancel();
         this.props.onChange && this.props.onChange(value);
-        if (_.isNumber(value) && value !== this.state.oldValue) 
-             this.props.onEndEditing && this.props.onEndEditing(value);
+        if (_.isNumber(value) && value !== this.state.oldValue)
+            this.props.onEndEditing && this.props.onEndEditing(value);
         this.setState.oldValue = value;
     };
 
@@ -138,17 +128,13 @@ class TextInputWithActions extends React.Component {
         clearTimeout(this.changeTimer);
     };
 
-    sameExecCommandInsertText = (e) => {
-        e.preventDefault();
+    sameExecCommandInsertText = () => {
         var start = this.selectionStart;
         var end = this.selectionEnd;
-
         this.value =
             this.value.substring(0, start) + '\t' + this.value.substring(end);
-
         this.selectionStart = this.selectionEnd = start + 1;
-        return false;
-    }
+    };
 
     onKeyDown = (e) => {
         this.props.onKeyDown && this.props.onKeyDown(e);
@@ -160,8 +146,8 @@ class TextInputWithActions extends React.Component {
         // if (e.key === 'Tab' && !e.shiftKey) this.sameExecCommandInsertText(e); //?
         if (e.key === 'Tab' && !e.shiftKey) {
             e.preventDefault();
-            //хорошей альтернативы нет, только самописный код
             document.execCommand('insertText', false, '\t');
+            // this.sameExecCommandInsertText();
             return false;
         }
     };
@@ -174,8 +160,8 @@ class TextInputWithActions extends React.Component {
             this.setValue('');
         } else {
             this.setValue(value);
-      }
-      localStorage.setItem(this.props.id, value);
+        }
+        localStorage.setItem(this.props.id, value);
     };
 
     getPlaceHolderMask = (mask) => {
@@ -218,356 +204,195 @@ class TextInputWithActions extends React.Component {
     };
 
     createControl = (inputStyle) => {
-    const {
-        className,
-        style,
-        type,
-        theme,
-        multiline,
-        script,
-        minRows = 1,
-        maxRows = 20,
-        config,
-        subType,
-        mask,
-        options,
-        ...props
-        // ...otherProps
-    } = this.props;
-        
-        // let { mask, options, ...props } = otherProps;
+        const {
+            className,
+            style,
+            type,
+            theme,
+            multiline,
+            script,
+            minRows = 1,
+            maxRows = 20,
+            config,
+            subType,
+            mask,
+            options,
+            ...props
+        } = this.props;
+
 
         let inputCN = cn(className, {
             [styles.inputReadOnly]: this.props.readOnly,
             [styles[theme]]: !!theme,
             [styles.readOnly]: this.props.readOnly,
         });
-
-        const value =
-            this.state.value || this.state.value === 0 ? this.state.value : '';
         
-            switch (true) {
-                case type === 'number':
-                    if (this.props.readOnly) {
-                        //  console.log(this.props.readOnly);
-                        return (
-                            <span className={inputCN}>
-                                {this.props.formatter &&
-                                    this.props.formatter(value)}
-                            </span>
-                        );
-                    } else {
-                        //  console.log('this.props.readOnly not exist');
-                        return (
-                            <InputNumber
-                                ref={this.input}
-                                onKeyDown={this.onKeyDown}
-                                className={inputCN}
-                                value={value}
-                                onChange={this.onChangeNumber}
-                                onBlur={this.onBlurNumber}
-                                style={style}
-                                {...props}
-                            />
-                        );
-                    }
-                case (mask ? true : false):
+const value =
+this.state.value || this.state.value === 0 ? this.state.value : '';
+
+        
+        switch (true) {
+            case type === 'number':
+                if (this.props.readOnly) {
                     return (
-                        <MaskedInput
-                            formatChars={formatCharsInput}
+                        <span className={inputCN}>
+                            {this.props.formatter &&
+                                this.props.formatter(value)}
+                        </span>
+                    );
+                } else {
+                    console.log(value);
+                    return (
+                        <InputNumber
+                            ref={this.input}
                             onKeyDown={this.onKeyDown}
-                            mask={mask}
-                            {...props}
-                            placeholder={this.getPlaceHolderMask(mask)}
+                            className={inputCN}
                             value={this.state.value}
-                            style={inputStyle}
-                            className={inputCN}
-                            onChange={this.onChangeMasked}
-                            onBlur={this.onBlur}
-                            disabled={this.props.readOnly}
-                        >
-                            {(inputProps) => (
-                                <Input {...inputProps} ref={this.input} />
-                            )}
-                        </MaskedInput>
-                    );
-                case (script? true : false):
-                    return (
-                        <CodeEditor
-                            ref={this.input}
-                            {...props}
-                            value={value}
-                            style={inputStyle}
-                            className={inputCN}
-                            onChange={this.setValue}
-                            onBlur={this.setBlur}
-                            subType={subType}
-                            rows={config.get('rows')}
-                        />
-                    );
-                case (options? true : false): {
-                      inputStyle = _.assign(inputStyle, { width: '100%' });
-                      const valueInOptions = _.some(options, (o) => {
-                          if (o.value === value) {
-                              return true;
-                          }
-                          if (
-                              o.options &&
-                              _.some(o.options, (o) => o.value === value)
-                          ) {
-                              return true;
-                          }
-                      });
-                      if (!valueInOptions && value) {
-                          inputCN = cn(inputCN, styles.invalidValue);
-                      }
-                      return (
-                          <Select
-                              ref={this.input}
-                              {...props}
-                              className={inputCN}
-                              style={inputStyle}
-                              value={value}
-                              onChange={this.setValue}
-                              onBlur={this.onBlurSelect}
-                              onInputKeyDown={this.onKeyDown}
-                              showSearch={true}
-                              variant={'borderless'}
-                              // showArrow={false}
-                              popupMatchSelectWidth={300}
-                              filterOption={(input, option) =>
-                                  (option.label || '')
-                                      .toLowerCase()
-                                      .includes(input.toLowerCase())
-                              }
-                          >
-                              {options.map((o, index) => {
-                                  if (_.isArray(o.options)) {
-                                      return (
-                                          <OptGroup
-                                              key={`${o.value}-${index}`}
-                                              label={o.label}
-                                              style={{ width: '30%' }}
-                                          >
-                                              {o.options.map((o) => {
-                                                  return this.renderSelectOption(
-                                                      o
-                                                  );
-                                              })}
-                                          </OptGroup>
-                                      );
-                                  } else {
-                                      return this.renderSelectOption(o, index);
-                                  }
-                              })}
-                          </Select>
-                      );
-                }
-                case (multiline ? true : false): 
-                    return (
-                        <TextArea
-                            ref={this.input}
-                            {...props}
-                            value={value}
-                            spellCheck='false'
-                            rows={4}
-                            autoSize={{
-                                minRows: props.readOnly ? 1 : minRows,
-                                maxRows: maxRows,
-                            }}
-                            className={cn(inputCN, styles.textArea)}
                             onChange={this.onChange}
-                            onBlur={this.onBlur}
-                            onKeyDown={this.onKeyDown}
+                            onBlur={this.onBlurNumber}
+                            style={style}
+                            {...props}
                         />
                     );
-                case (this.props.children ? true : false):
-                      return (
-                          <div
-                              style={inputStyle}
-                              className={cn('ant-input', inputCN)}
-                          >
-                              {this.props.children}
-                          </div>
-                      );
-
-                default:
-                     return (
-                         <Input
-                             ref={this.input}
-                             {...props}
-                             config={config}
-                             value={value}
-                             style={inputStyle}
-                             className={inputCN}
-                             onChange={this.onChange}
-                             onBlur={this.onBlur}
-                             onKeyDown={this.onKeyDown}
-                         />
-                     );
+                }
+            case mask ? true : false:
+                return (
+                    <MaskedInput
+                        formatChars={formatCharsInput}
+                        onKeyDown={this.onKeyDown}
+                        mask={mask}
+                        {...props}
+                        placeholder={this.getPlaceHolderMask(mask)}
+                        value={this.state.value}
+                        style={inputStyle}
+                        className={inputCN}
+                        onChange={this.onChangeMasked}
+                        onBlur={this.onBlur}
+                        disabled={this.props.readOnly}
+                    >
+                        {(inputProps) => (
+                            <Input {...inputProps} ref={this.input} />
+                        )}
+                    </MaskedInput>
+                );
+            case script ? true : false:
+                return (
+                    <CodeEditor
+                        ref={this.input}
+                        {...props}
+                        value={value}
+                        style={inputStyle}
+                        className={inputCN}
+                        onChange={this.setValue}
+                        onBlur={this.setBlur}
+                        subType={subType}
+                        rows={config.get('rows')}
+                    />
+                );
+            case options ? true : false: {
+                inputStyle = _.assign(inputStyle, { width: '100%' });
+                const valueInOptions = _.some(options, (o) => {
+                    if (o.value === value) {
+                        return true;
+                    }
+                    if (
+                        o.options &&
+                        _.some(o.options, (o) => o.value === value)
+                    ) {
+                        return true;
+                    }
+                });
+                if (!valueInOptions && value) {
+                    inputCN = cn(inputCN, styles.invalidValue);
+                }
+                return (
+                    <Select
+                        ref={this.input}
+                        {...props}
+                        className={inputCN}
+                        style={inputStyle}
+                        value={value}
+                        onChange={this.setValue}
+                        onBlur={this.onBlurSelect}
+                        onInputKeyDown={this.onKeyDown}
+                        showSearch={true}
+                        variant={'borderless'}
+                        // showArrow={false}
+                        popupMatchSelectWidth={300}
+                        filterOption={(input, option) =>
+                            (option.label || '')
+                                .toLowerCase()
+                                .includes(input.toLowerCase())
+                        }
+                    >
+                        {options.map((o, index) => {
+                            if (_.isArray(o.options)) {
+                                return (
+                                    <OptGroup
+                                        key={`${o.value}-${index}`}
+                                        label={o.label}
+                                        style={{ width: '30%' }}
+                                    >
+                                        {o.options.map((o) => {
+                                            return this.renderSelectOption(o);
+                                        })}
+                                    </OptGroup>
+                                );
+                            } else {
+                                return this.renderSelectOption(o, index);
+                            }
+                        })}
+                    </Select>
+                );
             }
-
-                // if (type === 'number') {
-                //     if (this.props.readOnly) {
-                //         return (
-                //             <span className={inputCN}>
-                //                 {this.props.formatter &&
-                //                     this.props.formatter(value)}
-                //             </span>
-                //         );
-                //     } else {
-                //         return (
-                //             <InputNumber
-                //                 ref={this.input}
-                //                 onKeyDown={this.onKeyDown}
-                //                 className={inputCN}
-                //                 value={value}
-                //                 onChange={this.onChangeNumber}
-                //                 onBlur={this.onBlurNumber}
-                //                 style={style}
-                //                 {...props}
-                //             />
-                //         );
-                //     }
-                // } else if (mask) {
-                //     return (
-                //         <MaskedInput
-                //             formatChars={formatCharsInput}
-                //             onKeyDown={this.onKeyDown}
-                //             mask={mask}
-                //             {...props}
-                //             placeholder={this.getPlaceHolderMask(mask)}
-                //             value={this.state.value}
-                //             style={inputStyle}
-                //             className={inputCN}
-                //             onChange={this.onChangeMasked}
-                //             onBlur={this.onBlur}
-                //             disabled={this.props.readOnly}
-                //         >
-                //             {(inputProps) => (
-                //                 <Input {...inputProps} ref={this.input} />
-                //             )}
-                //         </MaskedInput>
-                //     );
-                // } else if (script) {
-                //     return (
-                //         <CodeEditor
-                //             ref={this.input}
-                //             {...props}
-                //             value={value}
-                //             style={inputStyle}
-                //             className={inputCN}
-                //             onChange={this.setValue}
-                //             onBlur={this.setBlur}
-                //             subType={subType}
-                //             rows={config.get('rows')}
-                //         />
-                //     );
-                // } else if (options) {
-                //     inputStyle = _.assign(inputStyle, { width: '100%' });
-                //     const valueInOptions = _.some(options, (o) => {
-                //         if (o.value === value) {
-                //             return true;
-                //         }
-                //         if (
-                //             o.options &&
-                //             _.some(o.options, (o) => o.value === value)
-                //         ) {
-                //             return true;
-                //         }
-                //     });
-                //     if (!valueInOptions && value) {
-                //         inputCN = cn(inputCN, styles.invalidValue);
-                //     }
-                //     return (
-                //         <Select
-                //             ref={this.input}
-                //             {...props}
-                //             className={inputCN}
-                //             style={inputStyle}
-                //             value={value}
-                //             onChange={this.setValue}
-                //             onBlur={this.onBlurSelect}
-                //             onInputKeyDown={this.onKeyDown}
-                //             showSearch={true}
-                //             bordered={false}
-                //             // showArrow={false}
-                //             dropdownMatchSelectWidth={300}
-                //             filterOption={(input, option) =>
-                //                 (option.label || '')
-                //                     .toLowerCase()
-                //                     .includes(input.toLowerCase())
-                //             }
-                //         >
-                //             {options.map((o, index) => {
-                //                 if (_.isArray(o.options)) {
-                //                     return (
-                //                         <OptGroup
-                //                             key={`${o.value}-${index}`}
-                //                             label={o.label}
-                //                             style={{ width: '30%' }}
-                //                         >
-                //                             {o.options.map((o) => {
-                //                                 return this.renderSelectOption(
-                //                                     o
-                //                                 );
-                //                             })}
-                //                         </OptGroup>
-                //                     );
-                //                 } else {
-                //                     return this.renderSelectOption(o, index);
-                //                 }
-                //             })}
-                //         </Select>
-                //     );
-                // } else if (multiline) {
-                //     return (
-                //         <TextArea
-                //             ref={this.input}
-                //             {...props}
-                //             value={value}
-                //             spellCheck='false'
-                //             rows={4}
-                //             autoSize={{
-                //                 minRows: props.readOnly ? 1 : minRows,
-                //                 maxRows: maxRows,
-                //             }}
-                //             className={cn(inputCN, styles.textArea)}
-                //             onChange={this.onChange}
-                //             onBlur={this.onBlur}
-                //             onKeyDown={this.onKeyDown}
-                //         />
-                //     );
-                // } else if (this.props.children) {
-                //     return (
-                //         <div
-                //             style={inputStyle}
-                //             className={cn('ant-input', inputCN)}
-                //         >
-                //             {this.props.children}
-                //         </div>
-                //     );
-                // } else {
-                //     return (
-                //         <Input
-                //             ref={this.input}
-                //             {...props}
-                //             config={config}
-                //             value={value}
-                //             style={inputStyle}
-                //             className={inputCN}
-                //             onChange={this.onChange}
-                //             onBlur={this.onBlur}
-                //             onKeyDown={this.onKeyDown}
-                //         />
-                //     );
-                // }
-    }
+            case multiline ? true : false:
+                return (
+                    <TextArea
+                        ref={this.input}
+                        {...props}
+                        value={value}
+                        spellCheck='false'
+                        rows={4}
+                        autoSize={{
+                            minRows: props.readOnly ? 1 : minRows,
+                            maxRows: maxRows,
+                        }}
+                        className={cn(inputCN, styles.textArea)}
+                        onChange={this.onChange}
+                        onBlur={this.onBlur}
+                        onKeyDown={this.onKeyDown}
+                    />
+                );
+            case this.props.children ? true : false:
+                return (
+                    <div
+                        style={inputStyle}
+                        className={cn('ant-input', inputCN)}
+                    >
+                        {this.props.children}
+                    </div>
+                );
+            default:
+                return (
+                    <Input
+                        ref={this.input}
+                        {...props}
+                        config={config}
+                        value={value}
+                        style={inputStyle}
+                        className={inputCN}
+                        onChange={this.onChange}
+                        onBlur={this.onBlur}
+                        onKeyDown={this.onKeyDown}
+                    />
+                );
+        }
+    };
 
     render() {
-      const {
-          // eslint-disable-next-line no-unused-vars
-        //   onEndEditing,
+        const {
+            // eslint-disable-next-line no-unused-vars
+            onEndEditing,
             wrapperClassName,
             style,
             actionsClassName,
@@ -587,7 +412,6 @@ class TextInputWithActions extends React.Component {
         const containerCN = cn(wrapperClassName, textInputContainer, {
             [styles.inputMask]: !multiline && !!mask,
         });
-       
 
         let actionsCN;
 
@@ -627,7 +451,7 @@ class TextInputWithActions extends React.Component {
 
 TextInputWithActions.propTypes = {
     options:PropTypes.any,
-  id: PropTypes.string,
+    id: PropTypes.string,
     checkFunction: PropTypes.func,
     maxRows: PropTypes.number,
     minRows: PropTypes.number,
@@ -645,7 +469,7 @@ TextInputWithActions.propTypes = {
     value: PropTypes.any,
     children: PropTypes.any,
     style: PropTypes.any,
-    allowTabs: PropTypes.any,
+    allowTabs: PropTypes.bool,
     inputRef: PropTypes.any,
     autoFocus: PropTypes.func,
     prepareNumber: PropTypes.func,

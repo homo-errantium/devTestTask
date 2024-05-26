@@ -11,17 +11,6 @@ class UniversalInput extends React.Component {
     state = {
         shouldProcess: false,
     }
-      
-    // checkFunction = (func, value) => {
-    //     if (func) {
-    //         if (value) { func(value)}
-    //         else func();
-    //     }
-    // };
-
-    // changeShouldProcess = (boolean) => {
-    //   this.setState({ shouldProcess: boolean });
-    // };
 
     onChange = value => {
         this.props.onChange && this.props.onChange(value);
@@ -35,12 +24,11 @@ class UniversalInput extends React.Component {
     };
 
     render() {
-        //этих аргументов нет в пропс
             const {
                 updateProcess,
                 eventable,
                 actions,
-                // onEndEditing,
+                onEndEditing,
                 t,
                 ...props
         } = this.props;
